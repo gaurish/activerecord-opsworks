@@ -8,11 +8,22 @@ module ActiveRecord
   end
 
   class Migrator#:nodoc:
+    MIGRATOR_SALT = 2053462845
+
     def run
       if use_advisory_lock?
         with_advisory_lock { run_without_lock }
       else
         run_without_lock
+      end
+    end
+
+    def migrate
+      raise "boom"
+      if use_advisory_lock?
+        with_advisory_lock { migrate_without_lock }
+      else
+        migrate_without_lock
       end
     end
 
@@ -43,7 +54,6 @@ module ActiveRecord
       Base.connection.release_advisory_lock(lock_id) if got_lock
     end
 
-    MIGRATOR_SALT = 2053462845
     def generate_migrator_advisory_lock_id
       db_name_hash = Zlib.crc32(Base.connection.current_database)
       MIGRATOR_SALT * db_name_hash
